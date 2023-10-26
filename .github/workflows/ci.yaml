@@ -1,0 +1,42 @@
+name: react-grid-layout-sample CI
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build:
+        name: Build App
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.ref }}
+            - uses: actions/setup-node@v3
+            - name: Build
+              run: |
+                  yarn
+                  yarn build
+            - name: Upload Storybook artifact
+              uses: actions/upload-artifact@v3
+              with:
+                  name: build
+                  path: build/
+
+    deploy:
+        name: Deploy on Github Pages
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v3
+              with:
+                  name: build
+                  path: build
+            - name: Deploy
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: .
